@@ -11,9 +11,9 @@
 // 最大页数量
 #define TABLE_MAX_PAGES 100
 
-const int PAGE_SIZE = 4096; // 4K
-const int ROWS_PER_PAGE = PAGE_SIZE / ROW_SIZE;
-const int TABLE_MAX_ROWS = ROWS_PER_PAGE * TABLE_MAX_PAGES;
+constexpr int PAGE_SIZE = 4096; // 4K
+constexpr int ROWS_PER_PAGE = PAGE_SIZE / ROW_SIZE;
+constexpr int TABLE_MAX_ROWS = ROWS_PER_PAGE * TABLE_MAX_PAGES;
 
 class Table {
 public:
