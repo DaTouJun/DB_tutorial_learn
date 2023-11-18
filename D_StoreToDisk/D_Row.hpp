@@ -2,10 +2,10 @@
 // Created by 28318 on 2023/3/9.
 //
 
-#ifndef C_ROW_H
-#define C_ROW_H
+#ifndef D_ROW
+#define D_ROW
 
-#include "C_Settings.h"
+#include "D_Settings.hpp"
 #include <string>
 #include <cstring>
 
@@ -26,4 +26,4 @@ public:
     Row() = default;
 };
 
-#endif //C_ROW_H
+#endif //D_ROW

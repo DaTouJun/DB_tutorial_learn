@@ -2,8 +2,8 @@
 // Created by 28318 on 2023/9/1.
 //
 
-#ifndef C_INSERTANDSELECT_C_ENUMS_H
-#define C_INSERTANDSELECT_C_ENUMS_H
+#ifndef D_ENUMS
+#define D_ENUMS
 
 enum class MetaCommandResult {
     SUCCESS,
@@ -30,4 +30,4 @@ enum class ExecuteResult {
     ERROR
 };
 
-#endif //C_INSERTANDSELECT_C_ENUMS_H
+#endif //D_ENUMS

@@ -2,10 +2,10 @@
 // Created by 28318 on 2023/3/9.
 //
 
-#ifndef C_SERIALIZE_H
-#define C_SERIALIZE_H
+#ifndef D_SERIALIZER
+#define D_SERIALIZER
 
-#include "C_Row.h"
+#include "D_Row.hpp"
 #include <cstring>
 
 
@@ -33,4 +33,4 @@ void static deserialize_row(void *source, Row &destination) {
 }
 
 
-#endif //C_SERIALIZE_H
+#endif //D_SERIALIZER

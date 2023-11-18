@@ -35,3 +35,20 @@ add_custom_command(TARGET C_insertAndSelect
         COMMAND rspec ${CMAKE_SOURCE_DIR}/C_insertAndSelect/C_TestInsertAndSelect.rb
         WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
 )
+
+project(D_StoreToDisk)
+project(D_StoreToDiskWithoutTest)
+
+file(GLOB_RECURSE ProjectD_SrcFiles "D_StoreToDisk/*.cpp" "D_StoreToDisk/*.hpp")
+
+add_executable(D_StoreToDiskWithoutTest ${ProjectD_SrcFiles})
+
+add_executable(D_StoreToDisk ${ProjectD_SrcFiles})
+add_custom_command(TARGET D_StoreToDisk
+        POST_BUILD
+        COMMAND rspec ${CMAKE_SOURCE_DIR}/Tests/D_StoreToDiskTest.rb
+        WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+)
+
+
+

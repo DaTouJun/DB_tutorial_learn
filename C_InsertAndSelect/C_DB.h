@@ -34,11 +34,11 @@ public:
         return PrepareResult::UNRECOGNIZED_STATEMENT;
     }
 
-    PrepareResult prepare_insert(std::string s, Statement&statement) {
+    static PrepareResult prepare_insert(std::string s, Statement&statement) {
         using std::string;
         std::vector<string> out;
         while (!s.empty()) {
-            while (s.at(std::string::size_type(0)) == ' ' && !s.empty()) {
+            while (s.at({}) == ' ' && !s.empty()) {
                 s.erase(0, 1);
             }
             string::size_type pos{};
@@ -53,11 +53,18 @@ public:
         if (out.size() < 4)
             return PrepareResult::SYNTAX_ERROR;
 
-        string id_string = out.at(1);
-        string username = out.at(2);
-        string email = out.at(3);
+        const string id_string = out.at(1);
+        const string username = out.at(2);
+        const string email = out.at(3);
 
-        int id = std::stoi(id_string);
+        int id;
+        try {
+            id = std::stoi(id_string);
+        }
+        catch (std::invalid_argument) {
+            return PrepareResult::SYNTAX_ERROR;
+        }
+
         if (id < 0) {
             return PrepareResult::NEGATIVE_ID;
         }
@@ -92,73 +99,77 @@ public:
         return false;
     }
 
-    MetaCommandResult do_meta_command(const std::string&command) {
+    static MetaCommandResult do_meta_command(const std::string&command) {
         if (command == ".exit") {
             std::cout << "Bye!" << std::endl;
             exit(EXIT_SUCCESS);
         }
         if (command == ".help") {
-            return MetaCommandResult::META_COMMAND_HELP;
+            return MetaCommandResult::HELP;
         }
-        return MetaCommandResult::META_COMMAND_UNRECOGNIZED_COMMAND;
+        return MetaCommandResult::UNRECOGNIZED_COMMAND;
     }
 
     bool parse_meta_command(const std::string&command) {
         if (command[0] == '.') {
-            switch (DB::do_meta_command(command)) {
-                case META_COMMAND_HELP:
+            switch (do_meta_command(command)) {
+                case MetaCommandResult::HELP:
                     std::cout << ".help : 打印帮助" << std::endl;
                     std::cout << ".exit : 退出" << std::endl;
                     return true;
-                case META_COMMAND_UNRECOGNIZED_COMMAND:
+                case MetaCommandResult::UNRECOGNIZED_COMMAND:
                     std::cout << "Unrecognized command:" << command << std::endl;
                     return true;
-                case META_COMMAND_SUCCESS:
+                case MetaCommandResult::SUCCESS:
                     return true;
             }
         }
         return false;
     }
 
-    ExecuteResult execute_insert(Statement&statement, Table&table) {
+    static ExecuteResult execute_insert(const Statement&statement, Table&table) {
         if (table.num_rows >= TABLE_MAX_ROWS) {
-            return EXECUTE_TABLE_FULL;
+            return ExecuteResult::TABLE_FULL;
         }
         void* page = Table::row_slot(table, table.num_rows);
         serialize_row(statement.row_to_insert, page);
         table.num_rows++;
 
-        return ExecuteResult::EXECUTE_SUCCESS;
+        return ExecuteResult::SUCCESS;
     }
 
-    ExecuteResult execute_select(Statement&statement, Table&table) {
+    static ExecuteResult execute_select(Table&table) {
         for (uint32_t i = 0; i < table.num_rows; i++) {
             Row row;
             void* page = Table::row_slot(table, i);
             deserialize_row(page, row);
             std::cout << "(" << row.id << ", " << row.username << ", " << row.email << ")" << std::endl;
         }
-        return EXECUTE_SUCCESS;
+        return ExecuteResult::SUCCESS;
     }
 
-    void execute_statement(Statement&statement, Table&table) {
+    static void execute_statement(const Statement&statement, Table&table) {
         ExecuteResult executeResult;
         switch (statement.type) {
             case StatementType::INSERT:
                 executeResult = execute_insert(statement, table);
                 break;
             case StatementType::SELECT:
-                executeResult = execute_select(statement, table);
+                executeResult = execute_select(table);
                 break;
+            default:
+                executeResult = ExecuteResult::ERROR;
         }
 
         switch (executeResult) {
-            case EXECUTE_SUCCESS:
+            case ExecuteResult::SUCCESS:
                 std::cout << "Executed." << std::endl;
                 break;
-            case EXECUTE_TABLE_FULL:
+            case ExecuteResult::TABLE_FULL:
                 std::cout << "Error : Table full." << std::endl;
                 break;
+            default:
+                std::cout << "Error : Uncategorised error;";
         }
     }
 
@@ -167,7 +178,7 @@ public:
         Table table;
 
         while (true) {
-            DB::printPrompt();
+            printPrompt();
 
             std::string input_line;
             std::getline(std::cin, input_line); // getline获取一行的输入
