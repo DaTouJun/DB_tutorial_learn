@@ -5,10 +5,10 @@
 #ifndef C_INSERTANDSELECT_C_ENUMS_H
 #define C_INSERTANDSELECT_C_ENUMS_H
 
-enum MetaCommandResult {
-    META_COMMAND_SUCCESS,
-    META_COMMAND_UNRECOGNIZED_COMMAND,
-    META_COMMAND_HELP
+enum class MetaCommandResult {
+    SUCCESS,
+    UNRECOGNIZED_COMMAND,
+    HELP
 };
 
 enum class PrepareResult {
@@ -24,9 +24,10 @@ enum class StatementType {
     SELECT
 };
 
-enum ExecuteResult {
-    EXECUTE_SUCCESS,
-    EXECUTE_TABLE_FULL
+enum class ExecuteResult {
+    SUCCESS,
+    TABLE_FULL,
+    ERROR
 };
 
 #endif //C_INSERTANDSELECT_C_ENUMS_H

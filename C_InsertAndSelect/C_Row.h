@@ -15,7 +15,7 @@ public:
     char username[COLUMN_USERNAME_SIZE + 1]{'\0'};
     char email[COLUMN_EMAIL_SIZE + 1]{'\0'};
 
-    Row(unsigned int id, std::string&username, std::string&email) {
+    Row(const unsigned int id, const std::string&username, const std::string&email) {
         this->id = id;
         strncpy(this->username, username.c_str(), COLUMN_USERNAME_SIZE);
         this->username[COLUMN_USERNAME_SIZE] = '\0';
