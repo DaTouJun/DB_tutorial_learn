@@ -20,7 +20,6 @@ add_custom_command(TARGET B_FrontEnd_demo
         COMMAND rspec ${CMAKE_SOURCE_DIR}/B_FrontEnd/B_DB_TestOfFrontEnd.rb
         WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
 )
-#set_property(TARGET B_FrontEnd_demo PROPERTY OUTPUT_NAME db)
 
 project(C_insertAndSelect)
 add_executable(C_insertAndSelect
@@ -36,4 +35,3 @@ add_custom_command(TARGET C_insertAndSelect
         COMMAND rspec ${CMAKE_SOURCE_DIR}/C_insertAndSelect/C_TestInsertAndSelect.rb
         WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
 )
-#set_property(TARGET C_insertAndSelect PROPERTY OUTPUT_NAME db)

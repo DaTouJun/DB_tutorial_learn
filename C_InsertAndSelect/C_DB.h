@@ -1,14 +1,15 @@
 //
 // Created by 28318 on 2023/9/1.
 //
-#include <iostream>
-#include <string>
-#include "C_classTable.h"
-#include "C_Enums.h"
-
 #ifndef C_INSERTANDSELECT_C_DB_H
 #define C_INSERTANDSELECT_C_DB_H
 
+#include <iostream>
+#include <string>
+#include <vector>
+
+#include "C_classTable.h"
+#include "C_Enums.h"
 
 class DB {
 public:
@@ -18,40 +19,74 @@ public:
 
     class Statement {
     public:
-        StatementType type;
+        StatementType type{};
         Row row_to_insert;
     };
 
     PrepareResult prepare_statement(const std::string&input_line, Statement&statement) {
         if (!input_line.compare(0, 6, "insert")) {
-            statement.type = STATEMENT_INSERT;
-            int args_assigned = sscanf(
-                input_line.c_str(), "insert %d %s %s",
-                &(statement.row_to_insert.id),
-                statement.row_to_insert.username,
-                statement.row_to_insert.email
-            );
-            if (args_assigned < 3)
-                return PrepareResult::PREPARE_SYNTAX_ERROR;
-            return PrepareResult::PREPARE_SUCCESS;
+            return prepare_insert(input_line, statement);
         }
         if (!input_line.compare(0, 6, "select")) {
-            statement.type = STATEMENT_SELECT;
-            return PrepareResult::PREPARE_SUCCESS;
+            statement.type = StatementType::SELECT;
+            return PrepareResult::SUCCESS;
         }
-        return PrepareResult::PREPARE_UNRECOGNIZED_STATEMENT;
+        return PrepareResult::UNRECOGNIZED_STATEMENT;
+    }
+
+    PrepareResult prepare_insert(std::string s, Statement&statement) {
+        using std::string;
+        std::vector<string> out;
+        while (!s.empty()) {
+            while (s.at(std::string::size_type(0)) == ' ' && !s.empty()) {
+                s.erase(0, 1);
+            }
+            string::size_type pos{};
+            while (s.at(pos) != ' ' && pos < s.length() - 1) {
+                pos++;
+            }
+            out.push_back(pos == s.length() - 1
+                              ? s.substr({}, pos + 1)
+                              : s.substr({}, pos));
+            s = s.substr(pos + 1, s.length());
+        }
+        if (out.size() < 4)
+            return PrepareResult::SYNTAX_ERROR;
+
+        string id_string = out.at(1);
+        string username = out.at(2);
+        string email = out.at(3);
+
+        int id = std::stoi(id_string);
+        if (id < 0) {
+            return PrepareResult::NEGATIVE_ID;
+        }
+        if (username.length() > COLUMN_USERNAME_SIZE) {
+            return PrepareResult::STRING_TOO_LONG;
+        }
+        if (email.length() > COLUMN_EMAIL_SIZE) {
+            return PrepareResult::STRING_TOO_LONG;
+        }
+        statement.row_to_insert = Row(id, username, email);
+        return PrepareResult::SUCCESS;
     }
 
     bool parse_statement(const std::string&input_line, Statement&statement) {
         switch (prepare_statement(input_line, statement)) {
-            case PREPARE_SUCCESS:
+            case PrepareResult::SUCCESS:
                 return false;
-            case PREPARE_UNRECOGNIZED_STATEMENT:
+            case PrepareResult::UNRECOGNIZED_STATEMENT:
                 std::cout << "Unrecognized keyword at start of \'" <<
                         input_line << "\'." << std::endl;
                 return true;
-            case PREPARE_SYNTAX_ERROR:
+            case PrepareResult::SYNTAX_ERROR:
                 std::cout << "Syntax error. Could not parse statement." << std::endl;
+                return true;
+            case PrepareResult::NEGATIVE_ID:
+                std::cout << "ID must be positive." << std::endl;
+                return true;
+            case PrepareResult::STRING_TOO_LONG:
+                std::cout << "String is too long." << std::endl;
                 return true;
         }
         return false;
@@ -62,12 +97,10 @@ public:
             std::cout << "Bye!" << std::endl;
             exit(EXIT_SUCCESS);
         }
-        else if (command == ".help") {
+        if (command == ".help") {
             return MetaCommandResult::META_COMMAND_HELP;
         }
-        else {
-            return MetaCommandResult::META_COMMAND_UNRECOGNIZED_COMMAND;
-        }
+        return MetaCommandResult::META_COMMAND_UNRECOGNIZED_COMMAND;
     }
 
     bool parse_meta_command(const std::string&command) {
@@ -89,7 +122,6 @@ public:
 
     ExecuteResult execute_insert(Statement&statement, Table&table) {
         if (table.num_rows >= TABLE_MAX_ROWS) {
-            std::cerr << "Error : Table full." << std::endl;
             return EXECUTE_TABLE_FULL;
         }
         void* page = Table::row_slot(table, table.num_rows);
@@ -112,10 +144,10 @@ public:
     void execute_statement(Statement&statement, Table&table) {
         ExecuteResult executeResult;
         switch (statement.type) {
-            case STATEMENT_INSERT:
+            case StatementType::INSERT:
                 executeResult = execute_insert(statement, table);
                 break;
-            case STATEMENT_SELECT:
+            case StatementType::SELECT:
                 executeResult = execute_select(statement, table);
                 break;
         }
@@ -125,7 +157,7 @@ public:
                 std::cout << "Executed." << std::endl;
                 break;
             case EXECUTE_TABLE_FULL:
-                std::cout << "Error: Table full." << std::endl;
+                std::cout << "Error : Table full." << std::endl;
                 break;
         }
     }

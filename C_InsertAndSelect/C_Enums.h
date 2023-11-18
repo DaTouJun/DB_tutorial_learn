@@ -10,18 +10,21 @@ enum MetaCommandResult {
     META_COMMAND_UNRECOGNIZED_COMMAND,
     META_COMMAND_HELP
 };
-enum PrepareResult {
-    PREPARE_SUCCESS,
-    PREPARE_UNRECOGNIZED_STATEMENT,
-    PREPARE_SYNTAX_ERROR
+
+enum class PrepareResult {
+    SUCCESS,
+    UNRECOGNIZED_STATEMENT,
+    SYNTAX_ERROR,
+    NEGATIVE_ID,
+    STRING_TOO_LONG
 };
 
-enum StatementType {
-    STATEMENT_INSERT,
-    STATEMENT_SELECT
+enum class StatementType {
+    INSERT,
+    SELECT
 };
 
-enum ExecuteResult{
+enum ExecuteResult {
     EXECUTE_SUCCESS,
     EXECUTE_TABLE_FULL
 };

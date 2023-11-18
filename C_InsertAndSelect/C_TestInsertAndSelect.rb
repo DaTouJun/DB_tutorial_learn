@@ -16,20 +16,20 @@ describe 'database' do
         result = run_script([
             "insert 1 user1 person1@example.com",
             "select",
-          ".exit",
+            ".exit",
         ])
         expect(result).to match_array([
-          "db > Executed.",
-          "db > (1, user1, person1@example.com)",
-          "Executed.",
-          "db > Bye!",
+            "db > Executed.",
+            "db > (1, user1, person1@example.com)",
+            "Executed.",
+            "db > Bye!",
         ])
     end
 
     it 'error insert' do
         result = run_script([
-          "insert 2 user2",
-          ".exit",
+            "insert 2 user2",
+            ".exit"
         ])
         expect(result).to match_array([
           "db > Syntax error. Could not parse statement.",
