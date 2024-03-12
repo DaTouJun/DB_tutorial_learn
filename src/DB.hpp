@@ -7,8 +7,8 @@
 #include <iostream>
 #include <memory>
 
-#include "D_Table.hpp"
-#include "D_Enums.hpp"
+#include "Table.hpp"
+#include "Enums.hpp"
 
 class DB {
 private:

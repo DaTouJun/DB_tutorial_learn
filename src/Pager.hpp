@@ -5,7 +5,7 @@
 #ifndef PAGER_HPP
 #define PAGER_HPP
 
-#include "D_Enums.hpp"
+#include "Enums.hpp"
 
 #include <cstdio>
 #include <fcntl.h>

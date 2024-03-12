@@ -5,7 +5,7 @@
 #ifndef D_SERIALIZER
 #define D_SERIALIZER
 
-#include "D_Row.hpp"
+#include "Row.hpp"
 #include <cstring>
 
 #define size_of_attribute(Struct, Attribute) sizeof(((Struct*)0)->Attribute)
