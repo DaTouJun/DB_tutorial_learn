@@ -23,18 +23,18 @@ public:
     }
 
     ~Table() {
-        uint32_t num_full_pages = num_rows / TableSettings::ROWS_PER_PAGE;
+        uint32_t num_full_pages = num_rows / ROWS_PER_PAGE;
         for (uint32_t i = 0; i < num_full_pages; i++) {
             if (pager.pages[i] == nullptr) {
                 continue;
             }
-            pager.pager_flush(i, TableSettings::PAGE_SIZE);
+            pager.pager_flush(i, PAGE_SIZE);
             free(pager.pages[i]);
             pager.pages[i] = nullptr;
         }
 
         // There may be a partial page to write to the end of the file
-        uint32_t num_additional_rows = num_rows % TableSettings::ROWS_PER_PAGE;
+        uint32_t num_additional_rows = num_rows % ROWS_PER_PAGE;
         if (num_additional_rows > 0) {
             uint32_t page_num = num_full_pages;
             if (pager.pages[page_num] != nullptr) {
@@ -60,14 +60,18 @@ public:
     }
 
     void *row_slot(const uint_fast32_t &row_num) {
-        uint_fast32_t page_num = row_num / TableSettings::ROWS_PER_PAGE;
+        uint_fast32_t page_num = row_num / ROWS_PER_PAGE;
         /*
         void* page = table.pages[page_num];
         if (page == nullptr)
-            page = table.pages[page_num] = std::malloc(TableSettings::PAGE_SIZE);
+            page = table.pages[page_num] = std::malloc(PAGE_SIZE);
         */
         void *page = pager.get_page(page_num);
-        uint_fast32_t row_offset = row_num % TableSettings::ROWS_PER_PAGE;
+        if (page == nullptr){
+            std::cerr << "Page pointer is null" << std::endl;
+            exit(EXIT_FAILURE);
+        }
+        uint_fast32_t row_offset = row_num % ROWS_PER_PAGE;
         uint_fast32_t byte_offset = row_offset * ROW_SIZE;
         return static_cast<char *>(page) + byte_offset;
     }

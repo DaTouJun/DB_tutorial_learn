@@ -47,6 +47,11 @@ add_executable(D_StoreToDiskWithoutTest ${ProjectD_SrcFiles})
 add_executable(D_StoreToDisk ${ProjectD_SrcFiles})
 add_custom_command(TARGET D_StoreToDisk
         POST_BUILD
+        COMMAND rm test.db
+        WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+)
+add_custom_command(TARGET D_StoreToDisk
+        POST_BUILD
         COMMAND rspec ${CMAKE_SOURCE_DIR}/Tests/D_StoreToDiskTest.rb
         WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
 )

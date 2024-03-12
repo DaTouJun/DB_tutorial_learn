@@ -42,19 +42,19 @@ public:
         }
         if (pages[page_num] == nullptr) {
             // Cache miss. Allocate memory and load from file.
-            void *page = malloc(TableSettings::PAGE_SIZE);
-            uint32_t num_pages = file_length / TableSettings::PAGE_SIZE;
+            void *page = malloc(PAGE_SIZE);
+            uint32_t num_pages = file_length / PAGE_SIZE;
 
-            if (file_length % TableSettings::PAGE_SIZE) {
+            if (file_length % PAGE_SIZE) {
                 num_pages++;
             }
 
             // We might save a partial page at the end of the file
-            if (file_length <= num_pages) {
-                lseek(file_describer, page_num * TableSettings::PAGE_SIZE,
+            if (page_num <= num_pages) {
+                lseek(file_describer, page_num * PAGE_SIZE,
                       SEEK_SET);
                 ssize_t bytes_read = read(file_describer,
-                                          page, TableSettings::PAGE_SIZE);
+                                          page, PAGE_SIZE);
                 if (bytes_read == -1) {
                     std::cout << "Error reading file" << errno << std::endl;
                     exit(EXIT_FAILURE);
@@ -71,7 +71,7 @@ public:
             exit(EXIT_FAILURE);
         }
         off_t offset = lseek(file_describer,
-                             TableSettings::PAGE_SIZE,
+                             PAGE_SIZE * page_num,
                              SEEK_SET);
         if (offset == -1) {
             std::cout << "Error seeking: " << errno << std::endl;

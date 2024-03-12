@@ -26,7 +26,7 @@ describe 'database' do
 
     it "test storage function" do
         result1 = run_script([
-            "insert 1 user1 person@example.com",
+            "insert 1 user1 person1@example.com",
             ".exit",
         ])
         expect(result1).to match_array([

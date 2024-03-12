@@ -132,7 +132,7 @@ bool DB::parse_meta_command(const std::string &command) {
 }
 
 ExecuteResult DB::execute_insert(const Statement &statement) {
-    if (table->num_rows >= TableSettings::TABLE_MAX_ROWS) {
+    if (table->num_rows >= TABLE_MAX_ROWS) {
         return ExecuteResult::TABLE_FULL;
     }
     void *page = table->row_slot(table->num_rows);
