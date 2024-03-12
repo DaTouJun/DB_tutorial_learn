@@ -8,7 +8,7 @@
 #ifndef C_CLASS_TABLE_H
 #define C_CLASS_TABLE_H
 
-// 最大页数量
+// 鏈�澶ч〉鏁伴噺
 #define TABLE_MAX_PAGES 100
 
 constexpr int PAGE_SIZE = 4096; // 4K

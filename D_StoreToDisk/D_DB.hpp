@@ -5,12 +5,19 @@
 #define D_DB
 
 #include <iostream>
+#include <memory>
 
 #include "D_Table.hpp"
 #include "D_Enums.hpp"
 
 class DB {
+private:
+    std::unique_ptr<Table> table;
 public:
+    explicit DB(const char *filename) {
+        table = std::make_unique<Table>(filename);
+    }
+
     static void printPrompt() {
         std::cout << "db > ";
     }
@@ -21,23 +28,23 @@ public:
         Row row_to_insert;
     };
 
-    [[noreturn]] static void start();
+    [[noreturn]] void start();
 
-    static bool parse_meta_command(const std::string&command);
+    bool parse_meta_command(const std::string &command);
 
-    static MetaCommandResult do_meta_command(const std::string&command);
+    MetaCommandResult do_meta_command(const std::string &command);
 
-    static bool parse_statement(const std::string&input_line, Statement&statement);
+    bool parse_statement(const std::string &input_line, Statement &statement);
 
-    static PrepareResult prepare_statement(const std::string&input_line, Statement&statement);
+    static PrepareResult prepare_statement(const std::string &input_line, Statement &statement);
 
-    static PrepareResult prepare_insert(std::string s, Statement&statement);
+    static PrepareResult prepare_insert(std::string s, Statement &statement);
 
-    static void execute_statement(const Statement&statement, Table&table);
+    void execute_statement(const Statement &statement);
 
-    static ExecuteResult execute_insert(const Statement&statement, Table&table);
+    ExecuteResult execute_insert(const Statement &statement);
 
-    static ExecuteResult execute_select(Table&table);
+    ExecuteResult execute_select();
 }; // DB_start
 
 #endif //D_DB

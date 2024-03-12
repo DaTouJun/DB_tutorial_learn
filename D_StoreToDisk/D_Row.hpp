@@ -5,9 +5,15 @@
 #ifndef D_ROW
 #define D_ROW
 
-#include "D_Settings.hpp"
 #include <string>
 #include <cstring>
+
+
+constexpr int COLUMN_USERNAME_SIZE = 32;
+constexpr int COLUMN_EMAIL_SIZE = 255;
+
+// 最大页数量
+constexpr int TABLE_MAX_PAGES = 100;
 
 class Row {
 public:

@@ -3,40 +3,75 @@
 //
 
 #include "D_Serializer.hpp"
+#include "D_Pager.hpp"
+
 #include <cstdlib>
 
 #ifndef D_TABLE
 #define D_TABLE
 
-// 最大页数量
-#define TABLE_MAX_PAGES 100
-
-constexpr int PAGE_SIZE = 4096; // 4K
-constexpr int ROWS_PER_PAGE = PAGE_SIZE / ROW_SIZE;
-constexpr int TABLE_MAX_ROWS = ROWS_PER_PAGE * TABLE_MAX_PAGES;
 
 class Table final {
+private:
+    Pager pager;
 public:
-    uint_fast32_t num_rows{0};
-    void* pages[TABLE_MAX_PAGES]{};
+    uint_fast32_t num_rows;
+    void *pages[TABLE_MAX_PAGES]{};
 
-    Table() = default;
+    explicit Table(const char *filename) : pager(filename) {
+        num_rows = pager.file_length / ROW_SIZE;
+    }
 
-    virtual ~Table() {
-        for (auto&page: pages) {
-            free(page);
+    ~Table() {
+        uint32_t num_full_pages = num_rows / TableSettings::ROWS_PER_PAGE;
+        for (uint32_t i = 0; i < num_full_pages; i++) {
+            if (pager.pages[i] == nullptr) {
+                continue;
+            }
+            pager.pager_flush(i, TableSettings::PAGE_SIZE);
+            free(pager.pages[i]);
+            pager.pages[i] = nullptr;
+        }
+
+        // There may be a partial page to write to the end of the file
+        uint32_t num_additional_rows = num_rows % TableSettings::ROWS_PER_PAGE;
+        if (num_additional_rows > 0) {
+            uint32_t page_num = num_full_pages;
+            if (pager.pages[page_num] != nullptr) {
+                pager.pager_flush(page_num,
+                                  num_additional_rows * ROW_SIZE);
+                free(pager.pages[page_num]);
+                pager.pages[page_num] = nullptr;
+            }
+        }
+
+        int result = close(pager.file_describer);
+        if (result == -1) {
+            std::cout << "Error closing db file" << std::endl;
+            exit(EXIT_FAILURE);
+        }
+        for (uint32_t i = 0; i < TABLE_MAX_PAGES; i++) {
+            void *page = pager.pages[i];
+            if (page) {
+                free(page);
+                pager.pages[i] = nullptr;
+            }
         }
     }
 
-    static void* row_slot(Table&table, const uint_fast32_t&row_num) {
-        uint_fast32_t page_num = row_num / ROWS_PER_PAGE;
+    void *row_slot(const uint_fast32_t &row_num) {
+        uint_fast32_t page_num = row_num / TableSettings::ROWS_PER_PAGE;
+        /*
         void* page = table.pages[page_num];
         if (page == nullptr)
-            page = table.pages[page_num] = std::malloc(PAGE_SIZE);
-        uint_fast32_t row_offset = row_num % ROWS_PER_PAGE;
+            page = table.pages[page_num] = std::malloc(TableSettings::PAGE_SIZE);
+        */
+        void *page = pager.get_page(page_num);
+        uint_fast32_t row_offset = row_num % TableSettings::ROWS_PER_PAGE;
         uint_fast32_t byte_offset = row_offset * ROW_SIZE;
         return static_cast<char *>(page) + byte_offset;
     }
+
 };
 
 

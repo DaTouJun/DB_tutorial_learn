@@ -11,7 +11,12 @@
 #define EXIT_SUCCESS 0
 
 
-int main() {
-    DB db;
+int main(int argc, char *argv[]) {
+    if (argc < 2) {
+        std::cout << "Must supply a database filename." << std::endl;
+        exit(EXIT_FAILURE);
+    }
+    DB db(argv[1]);
     db.start();
+    return 0;
 }

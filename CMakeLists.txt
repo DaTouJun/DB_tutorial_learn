@@ -36,6 +36,7 @@ add_custom_command(TARGET C_insertAndSelect
         WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
 )
 
+# 第四个 存储到磁盘
 project(D_StoreToDisk)
 project(D_StoreToDiskWithoutTest)
 

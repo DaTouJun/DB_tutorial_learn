@@ -4,10 +4,11 @@
 #include "D_DB.hpp"
 #include <vector>
 #include <string>
+#include <memory>
+
+
 
 void DB::start() {
-    Table table;
-
     while (true) {
         printPrompt();
 
@@ -21,11 +22,11 @@ void DB::start() {
         if (parse_statement(input_line, statement))
             continue;
 
-        execute_statement(statement, table);
+        execute_statement(statement);
     }
 }
 
-PrepareResult DB::prepare_statement(const std::string&input_line, Statement&statement) {
+PrepareResult DB::prepare_statement(const std::string &input_line, Statement &statement) {
     if (!input_line.compare(0, 6, "insert")) {
         return prepare_insert(input_line, statement);
     }
@@ -36,7 +37,7 @@ PrepareResult DB::prepare_statement(const std::string&input_line, Statement&stat
     return PrepareResult::UNRECOGNIZED_STATEMENT;
 }
 
-PrepareResult DB::prepare_insert(std::string s, Statement&statement) {
+PrepareResult DB::prepare_insert(std::string s, Statement &statement) {
     using std::string;
     std::vector<string> out;
     while (!s.empty()) {
@@ -48,8 +49,8 @@ PrepareResult DB::prepare_insert(std::string s, Statement&statement) {
             pos++;
         }
         out.push_back(pos == s.length() - 1
-                          ? s.substr({}, pos + 1)
-                          : s.substr({}, pos));
+                      ? s.substr({}, pos + 1)
+                      : s.substr({}, pos));
         s = s.substr(pos + 1, s.length());
     }
     if (out.size() < 4)
@@ -80,13 +81,13 @@ PrepareResult DB::prepare_insert(std::string s, Statement&statement) {
     return PrepareResult::SUCCESS;
 }
 
-bool DB::parse_statement(const std::string&input_line, Statement&statement) {
+bool DB::parse_statement(const std::string &input_line, Statement &statement) {
     switch (prepare_statement(input_line, statement)) {
         case PrepareResult::SUCCESS:
             return false;
         case PrepareResult::UNRECOGNIZED_STATEMENT:
             std::cout << "Unrecognized keyword at start of \'" <<
-                    input_line << "\'." << std::endl;
+                      input_line << "\'." << std::endl;
             return true;
         case PrepareResult::SYNTAX_ERROR:
             std::cout << "Syntax error. Could not parse statement." << std::endl;
@@ -101,8 +102,9 @@ bool DB::parse_statement(const std::string&input_line, Statement&statement) {
     return false;
 }
 
-MetaCommandResult DB::do_meta_command(const std::string&command) {
+MetaCommandResult DB::do_meta_command(const std::string &command) {
     if (command == ".exit") {
+        table.reset(nullptr);
         std::cout << "Bye!" << std::endl;
         exit(EXIT_SUCCESS);
     }
@@ -112,7 +114,7 @@ MetaCommandResult DB::do_meta_command(const std::string&command) {
     return MetaCommandResult::UNRECOGNIZED_COMMAND;
 }
 
-bool DB::parse_meta_command(const std::string&command) {
+bool DB::parse_meta_command(const std::string &command) {
     if (command[0] == '.') {
         switch (do_meta_command(command)) {
             case MetaCommandResult::HELP:
@@ -129,35 +131,36 @@ bool DB::parse_meta_command(const std::string&command) {
     return false;
 }
 
-ExecuteResult DB::execute_insert(const Statement&statement, Table&table) {
-    if (table.num_rows >= TABLE_MAX_ROWS) {
+ExecuteResult DB::execute_insert(const Statement &statement) {
+    if (table->num_rows >= TableSettings::TABLE_MAX_ROWS) {
         return ExecuteResult::TABLE_FULL;
     }
-    void* page = Table::row_slot(table, table.num_rows);
+    void *page = table->row_slot(table->num_rows);
+    
     serialize_row(statement.row_to_insert, page);
-    table.num_rows++;
+    table->num_rows++;
 
     return ExecuteResult::SUCCESS;
 }
 
-ExecuteResult DB::execute_select(Table&table) {
-    for (uint32_t i = 0; i < table.num_rows; i++) {
+ExecuteResult DB::execute_select() {
+    for (uint32_t i = 0; i < table->num_rows; i++) {
         Row row;
-        void* page = Table::row_slot(table, i);
+        void *page = table->row_slot(i);
         deserialize_row(page, row);
         std::cout << "(" << row.id << ", " << row.username << ", " << row.email << ")" << std::endl;
     }
     return ExecuteResult::SUCCESS;
 }
 
-void DB::execute_statement(const Statement&statement, Table&table) {
+void DB::execute_statement(const Statement &statement) {
     ExecuteResult executeResult;
     switch (statement.type) {
         case StatementType::INSERT:
-            executeResult = execute_insert(statement, table);
+            executeResult = execute_insert(statement);
             break;
         case StatementType::SELECT:
-            executeResult = execute_select(table);
+            executeResult = execute_select();
             break;
         default:
             executeResult = ExecuteResult::ERROR;

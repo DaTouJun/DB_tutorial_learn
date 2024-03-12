@@ -99,7 +99,7 @@ public:
         return false;
     }
 
-    static MetaCommandResult do_meta_command(const std::string&command) {
+    MetaCommandResult do_meta_command(const std::string&command) {
         if (command == ".exit") {
             std::cout << "Bye!" << std::endl;
             exit(EXIT_SUCCESS);
@@ -114,8 +114,8 @@ public:
         if (command[0] == '.') {
             switch (do_meta_command(command)) {
                 case MetaCommandResult::HELP:
-                    std::cout << ".help : ´òÓ¡°ïÖú" << std::endl;
-                    std::cout << ".exit : ÍË³ö" << std::endl;
+                    std::cout << ".help : ï¿½ï¿½Ó¡ï¿½ï¿½ï¿½ï¿½" << std::endl;
+                    std::cout << ".exit : ï¿½Ë³ï¿½" << std::endl;
                     return true;
                 case MetaCommandResult::UNRECOGNIZED_COMMAND:
                     std::cout << "Unrecognized command:" << command << std::endl;
@@ -181,7 +181,7 @@ public:
             printPrompt();
 
             std::string input_line;
-            std::getline(std::cin, input_line); // getline»ñÈ¡Ò»ÐÐµÄÊäÈë
+            std::getline(std::cin, input_line); // getlineï¿½ï¿½È¡Ò»ï¿½Ðµï¿½ï¿½ï¿½ï¿½ï¿½
 
             if (parse_meta_command(input_line))
                 continue;

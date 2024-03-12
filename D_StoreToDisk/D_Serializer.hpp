@@ -8,7 +8,6 @@
 #include "D_Row.hpp"
 #include <cstring>
 
-
 #define size_of_attribute(Struct, Attribute) sizeof(((Struct*)0)->Attribute)
 constexpr int ID_SIZE = size_of_attribute(Row, id);
 constexpr int USERNAME_SIZE = size_of_attribute(Row, email);
@@ -32,5 +31,12 @@ void static deserialize_row(void *source, Row &destination) {
     memcpy(&destination.email, static_cast<char *>(source) + EMAIL_OFFSET, EMAIL_SIZE);
 }
 
+
+namespace TableSettings
+{
+    constexpr int PAGE_SIZE = 4096; // 4K
+    constexpr int ROWS_PER_PAGE = PAGE_SIZE / ROW_SIZE;
+    constexpr int TABLE_MAX_ROWS = ROWS_PER_PAGE * TABLE_MAX_PAGES;
+}
 
 #endif //D_SERIALIZER
