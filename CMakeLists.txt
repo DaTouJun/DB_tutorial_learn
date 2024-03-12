@@ -12,11 +12,6 @@ add_executable(tinyDB_WithoutTest ${ProjectD_SrcFiles})
 add_executable(tinyDB ${ProjectD_SrcFiles})
 add_custom_command(TARGET tinyDB
         POST_BUILD
-        COMMAND rm -f test.db
-        WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
-)
-add_custom_command(TARGET tinyDB
-        POST_BUILD
         COMMAND rspec ${CMAKE_SOURCE_DIR}/test/tinyDB.rb
         WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
 )

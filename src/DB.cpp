@@ -174,6 +174,6 @@ void DB::execute_statement(const Statement &statement) {
             std::cout << "Error : Table full." << std::endl;
             break;
         default:
-            std::cout << "Error : Uncategorised error;";
+            std::cout << "Error : Uncategorized error;";
     }
 }
