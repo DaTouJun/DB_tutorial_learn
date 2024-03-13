@@ -2,19 +2,18 @@
 // Created by 28318 on 2023/3/9.
 //
 
+#ifndef D_TABLE
+#define D_TABLE
+
+
 #include "Serializer.hpp"
 #include "Pager.hpp"
 
 #include <cstdlib>
 
-#ifndef D_TABLE
-#define D_TABLE
-
-
 class Table final {
-private:
-    Pager pager;
 public:
+    Pager pager;
     uint_fast32_t num_rows;
     void *pages[TABLE_MAX_PAGES]{};
 

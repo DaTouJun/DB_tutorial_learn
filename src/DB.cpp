@@ -6,6 +6,7 @@
 #include <string>
 #include <memory>
 
+#include "Cursor.hpp"
 
 
 void DB::start() {
@@ -13,7 +14,7 @@ void DB::start() {
         printPrompt();
 
         std::string input_line;
-        std::getline(std::cin, input_line); // getline»ñÈ¡Ò»ĞĞµÄÊäÈë
+        std::getline(std::cin, input_line); // getlineè·å–ä¸€è¡Œçš„è¾“å…¥
 
         if (parse_meta_command(input_line))
             continue;
@@ -64,7 +65,7 @@ PrepareResult DB::prepare_insert(std::string s, Statement &statement) {
     try {
         id = std::stoi(id_string);
     }
-    catch (std::invalid_argument) {
+    catch (std::invalid_argument&) {
         return PrepareResult::SYNTAX_ERROR;
     }
 
@@ -118,8 +119,8 @@ bool DB::parse_meta_command(const std::string &command) {
     if (command[0] == '.') {
         switch (do_meta_command(command)) {
             case MetaCommandResult::HELP:
-                std::cout << ".help : ´òÓ¡°ïÖú" << std::endl;
-                std::cout << ".exit : ÍË³ö" << std::endl;
+                std::cout << ".help : æ‰“å°å¸®åŠ©" << std::endl;
+                std::cout << ".exit : é€€å‡º" << std::endl;
                 return true;
             case MetaCommandResult::UNRECOGNIZED_COMMAND:
                 std::cout << "Unrecognized command:" << command << std::endl;
@@ -135,9 +136,9 @@ ExecuteResult DB::execute_insert(const Statement &statement) {
     if (table->num_rows >= TABLE_MAX_ROWS) {
         return ExecuteResult::TABLE_FULL;
     }
-    void *page = table->row_slot(table->num_rows);
-    
-    serialize_row(statement.row_to_insert, page);
+    auto cursor = std::make_unique<Cursor>(*table, false);
+
+    serialize_row(statement.row_to_insert, cursor->cursor_value());
     table->num_rows++;
 
     return ExecuteResult::SUCCESS;

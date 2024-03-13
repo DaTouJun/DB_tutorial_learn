@@ -1,7 +1,6 @@
 cmake_minimum_required(VERSION 3.22)
 set(CMAKE_CXX_STANDARD 23)
 
-# 第四个 存储到磁盘
 project(tinyDB)
 project(tinyDB_WithoutTest)
 

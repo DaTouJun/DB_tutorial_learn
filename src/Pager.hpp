@@ -5,10 +5,10 @@
 #ifndef PAGER_HPP
 #define PAGER_HPP
 
-#include "Enums.hpp"
-
 #include <cstdio>
 #include <fcntl.h>
+#include <iostream>
+#include <unistd.h>
 
 class Pager {
 public:
