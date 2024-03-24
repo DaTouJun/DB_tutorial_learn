@@ -6,18 +6,8 @@
 #define D_SERIALIZER
 
 #include "Row.hpp"
+#include "EnumsAndDefs.hpp"
 #include <cstring>
-
-#define size_of_attribute(Struct, Attribute) sizeof(((Struct*)0)->Attribute)
-constexpr int ID_SIZE = size_of_attribute(Row, id);
-constexpr int USERNAME_SIZE = size_of_attribute(Row, username);
-constexpr int EMAIL_SIZE = size_of_attribute(Row, email);
-
-constexpr int ID_OFFSET = 0;
-constexpr int USERNAME_OFFSET = ID_OFFSET + ID_SIZE;
-constexpr int EMAIL_OFFSET = USERNAME_OFFSET + USERNAME_SIZE;
-
-constexpr int ROW_SIZE = ID_SIZE + USERNAME_SIZE + EMAIL_SIZE;
 
 void static serialize_row(const Row &source, void *destination) {
     memcpy(static_cast<char *>(destination) + ID_OFFSET, &source.id, ID_SIZE);
@@ -32,8 +22,5 @@ void static deserialize_row(void *source, Row &destination) {
 }
 
 
-constexpr int PAGE_SIZE = 4096; // 4K
-constexpr int ROWS_PER_PAGE = PAGE_SIZE / ROW_SIZE;
-constexpr int TABLE_MAX_ROWS = ROWS_PER_PAGE * TABLE_MAX_PAGES;
 
 #endif //D_SERIALIZER

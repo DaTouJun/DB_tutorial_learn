@@ -7,6 +7,7 @@
 #include <memory>
 
 #include "Cursor.hpp"
+#include "LeafNode.hpp"
 
 
 void DB::start() {
@@ -14,7 +15,7 @@ void DB::start() {
         printPrompt();
 
         std::string input_line;
-        std::getline(std::cin, input_line); // getline获取一行的输入
+        std::getline(std::cin, input_line); // get line获取一行的输入
 
         if (parse_meta_command(input_line))
             continue;
@@ -65,7 +66,7 @@ PrepareResult DB::prepare_insert(std::string s, Statement &statement) {
     try {
         id = std::stoi(id_string);
     }
-    catch (std::invalid_argument&) {
+    catch (std::invalid_argument &) {
         return PrepareResult::SYNTAX_ERROR;
     }
 
@@ -108,9 +109,23 @@ MetaCommandResult DB::do_meta_command(const std::string &command) {
         table.reset(nullptr);
         std::cout << "Bye!" << std::endl;
         exit(EXIT_SUCCESS);
-    }
-    if (command == ".help") {
+    } else if (command == ".btree") {
+        std::cout << "Tree:" << std::endl;
+        auto root_node = LeafNode(table->pager.get_page(table->root_page_num));
+        root_node.print_leaf_node();
+        return MetaCommandResult::SUCCESS;
+    } else if (command == ".help") {
         return MetaCommandResult::HELP;
+    } else if (command == ".constants") {
+        using std::cout, std::endl;
+        cout << "Constants:" << endl;
+        cout << "ROW_SIZE: " << ROW_SIZE << endl;
+        cout << "COMMON_NODE_HEADER_SIZE: " << COMMON_NODE_HEADER_SIZE << endl;
+        cout << "LEAF_NODE_HEADER_SIZE: " << LEAF_NODE_HEADER_SIZE << endl;
+        cout << "LEAF_NODE_CELL_SIZE: " << LEAF_NODE_CELL_SIZE << endl;
+        cout << "LEAF_NODE_SPACE_FOR_CELLS: " << LEAF_NODE_SPACE_FOR_CELLS << endl;
+        cout << "LEAF_NODE_MAX_CELLS: " << LEAF_NODE_MAX_CELLS << endl;
+        return MetaCommandResult::SUCCESS;
     }
     return MetaCommandResult::UNRECOGNIZED_COMMAND;
 }
@@ -120,6 +135,7 @@ bool DB::parse_meta_command(const std::string &command) {
         switch (do_meta_command(command)) {
             case MetaCommandResult::HELP:
                 std::cout << ".help : 打印帮助" << std::endl;
+                std::cout << ".btree : 打印b树结构" << std::endl;
                 std::cout << ".exit : 退出" << std::endl;
                 return true;
             case MetaCommandResult::UNRECOGNIZED_COMMAND:
@@ -133,23 +149,25 @@ bool DB::parse_meta_command(const std::string &command) {
 }
 
 ExecuteResult DB::execute_insert(const Statement &statement) {
-    if (table->num_rows >= TABLE_MAX_ROWS) {
+    auto leaf_node = LeafNode(table->pager.get_page(
+            table->root_page_num));
+    if (*(leaf_node.leaf_node_num_cells()) >= LEAF_NODE_MAX_CELLS) {
+        std::cout << "Leaf node full." << std::endl;
         return ExecuteResult::TABLE_FULL;
     }
     auto cursor = std::make_unique<Cursor>(*table, false);
-
-    serialize_row(statement.row_to_insert, cursor->cursor_value());
-    table->num_rows++;
+    cursor->leaf_node_insert(statement.row_to_insert.id, statement.row_to_insert);  // 这里简单的将id作为insert的key
 
     return ExecuteResult::SUCCESS;
 }
 
 ExecuteResult DB::execute_select() {
-    for (uint32_t i = 0; i < table->num_rows; i++) {
-        Row row;
-        void *page = table->row_slot(i);
-        deserialize_row(page, row);
+    auto cursor = std::make_unique<Cursor>(*table, true);
+    Row row;
+    while (!cursor->end_of_table) {
+        deserialize_row(cursor->cursor_value(), row);
         std::cout << "(" << row.id << ", " << row.username << ", " << row.email << ")" << std::endl;
+        cursor->cursor_advance();
     }
     return ExecuteResult::SUCCESS;
 }

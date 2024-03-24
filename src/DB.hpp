@@ -8,7 +8,7 @@
 #include <memory>
 
 #include "Table.hpp"
-#include "Enums.hpp"
+#include "EnumsAndDefs.hpp"
 
 class DB {
 private:
@@ -34,7 +34,7 @@ public:
 
     MetaCommandResult do_meta_command(const std::string &command);
 
-    bool parse_statement(const std::string &input_line, Statement &statement);
+    static bool parse_statement(const std::string &input_line, Statement &statement);
 
     static PrepareResult prepare_statement(const std::string &input_line, Statement &statement);
 
