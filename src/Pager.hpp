@@ -42,40 +42,42 @@ public:
     }
 
     // 通过编号获得页面
-    void *get_page(uint32_t page_num) {
-        if (page_num >= TABLE_MAX_PAGES) {  // 超过了最大页面数
-            std::cout << "Tried to fetch page number out of bounds. " << page_num
+    void *get_page(uint32_t page_index) {
+        if (page_index >= TABLE_MAX_PAGES) {  // 超过了最大页面数
+            std::cout << "Tried to fetch page number out of bounds. " << page_index
                       << " > " << TABLE_MAX_PAGES << std::endl;
             exit(EXIT_FAILURE);
         }
-        if (pages[page_num] == nullptr) {   // 查看试图访问的页面号是否存在，否则从磁盘加载
-            // Cache miss. Allocate memory and load from file.
+        if (pages[page_index] == nullptr) {   // 要访问的页面号不存在则从磁盘加载，并申请内存
             void *page = malloc(PAGE_SIZE);
             uint32_t num_pages = file_length / PAGE_SIZE;   // 已经有的页面数
+            // num_pages DB中的页面数量   而不是当前pager中的页面数量this->num_pages
 
-            if (file_length % PAGE_SIZE) {
+            if (file_length % PAGE_SIZE) {  // 如果剩余页面则存储不完整的页面
                 num_pages++;
             }
 
-            // We might save a partial page at the end of the file
-            if (page_num <= num_pages) {    // 获得的页面已经有了 则进行读取
-                lseek(file_describer, page_num * PAGE_SIZE,
+            if (page_index < num_pages) {    // 判断文件是否有这个页面，没有就直接返回内存地址，有就从磁盘中读取之前的数据
+                lseek(file_describer, page_index * PAGE_SIZE,
                       SEEK_SET);
-                ssize_t bytes_read = read(file_describer,
-                                          page, PAGE_SIZE);
+                ssize_t bytes_read = read(file_describer, page, PAGE_SIZE); // 读取放到page中
+
                 if (bytes_read == -1) {
                     std::cout << "Error reading file" << errno << std::endl;
                     exit(EXIT_FAILURE);
                 }
             }
-            pages[page_num] = page;
-            if (page_num >= num_pages) {
-                this->num_pages = page_num + 1;
+            pages[page_index] = page;
+            if (page_index >= num_pages) {
+                this->num_pages = page_index + 1;
             }
         }
-        return pages[page_num];
+        return pages[page_index];
     }
 
+    /**
+     * @param page_num 要写入的页编号
+     */
     void pager_flush(uint32_t page_num) {
         if (pages[page_num] == nullptr) {
             std::cout << "Tried to flush null page " << std::endl;

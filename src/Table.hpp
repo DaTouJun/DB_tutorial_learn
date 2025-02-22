@@ -1,27 +1,31 @@
-//
-// Created by 28318 on 2023/3/9.
-//
+/**
+ * @class Table 页对象
+ * @brief
+ */
 
 #ifndef D_TABLE
 #define D_TABLE
 
-
 #include "Serializer.hpp"
 #include "Pager.hpp"
+#include "LeafNode.hpp"
 
 #include <cstdlib>
 
 class Table final {
 private:
-    uint32_t root_page_num;
+    uint32_t root_page_num;     // 用于存储根节点的页面号  现在一个节点对应一个page
     Pager pager;
-public:
     uint_fast32_t num_rows;
-    void *pages[TABLE_MAX_PAGES]{};
-
+public:
     // 初始化 计算已有行数
     explicit Table(const char *filename) : pager(filename) {
         num_rows = pager.file_length / ROW_SIZE; // 已经有的行数
+        root_page_num = 0;  // 现在就一个page
+        if (pager.num_pages == 0) { // 目前页面没有节点，要创建
+            LeafNode root_node = LeafNode(pager.get_page(0)); // 获得第0页，同时 pager自动创建对应文件
+            root_node.initialize_leaf_node();
+        }
     }
 
     ~Table() {  // 在Table销毁时 开始执行保存操作
@@ -65,6 +69,5 @@ public:
 
     friend class DB;
 };
-
 
 #endif //D_TABLE

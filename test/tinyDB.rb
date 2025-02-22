@@ -131,7 +131,7 @@ describe 'database' do
         ])
     end
 
-    # 测试打印结构
+    # 第七章 测试打印结构
     it "allows printing out the structure of a btree" do
         script = [3, 1, 2].map do |i|
             "insert #{i} user#{i} person#{i}@example.com"
@@ -153,7 +153,7 @@ describe 'database' do
         ])
     end
 
-    # 测试打印常量
+    # 第七章 测试打印常量
     it "prints constants" do
         script = [
             ".constants",

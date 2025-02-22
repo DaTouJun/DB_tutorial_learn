@@ -1,6 +1,6 @@
-//
-// Created by 28318 on 24-3-13.
-//
+/**
+ * @brief 光标来操作table也就是页
+ */
 
 #ifndef CURSOR_HPP
 #define CURSOR_HPP
@@ -13,7 +13,7 @@
  */
 class Cursor {
 private:
-    Table &table;
+    Table &table;       // 对应的页
     uint32_t page_num;
     uint32_t cell_num;
     bool end_of_table;
@@ -25,7 +25,5 @@ public:
 
     friend class DB;
 };
-
-
 
 #endif //CURSOR_HPP

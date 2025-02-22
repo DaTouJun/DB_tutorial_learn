@@ -18,6 +18,9 @@ class LeafNode {
 private:
     void *node;
 public:
+    /**
+     * @param node 用于存储节点的内存地址
+     */
     explicit LeafNode(void *node) : node(node) {}
 
     void initialize_leaf_node() { // 初始化叶子节点

@@ -155,7 +155,7 @@ ExecuteResult DB::execute_insert(const Statement &statement) {
         std::cout << "Leaf node full." << std::endl;
         return ExecuteResult::TABLE_FULL;
     }
-    auto cursor = std::make_unique<Cursor>(*table, false);
+    auto cursor = std::make_unique<Cursor>(*table, false); // 从头插入
     cursor->leaf_node_insert(statement.row_to_insert.id, statement.row_to_insert);  // 这里简单的将id作为insert的key
 
     return ExecuteResult::SUCCESS;

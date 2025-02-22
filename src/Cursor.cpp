@@ -8,6 +8,11 @@
 #include "LeafNode.hpp"
 #include <unistd.h>
 
+/**
+ *
+ * @param table Table的引用
+ * @param option 是否从头开始,否则从末尾开始
+ */
 Cursor::Cursor(Table &table, bool option) : table(table) {
     // 如果设置了option, 则从头开始
     page_num = table.root_page_num;
