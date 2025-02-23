@@ -6,6 +6,7 @@
 #define TINYDB_WITHOUTTEST_LEAFNODE_H
 
 #include "Serializer.hpp"
+#include "EnumsAndDefs.hpp"
 #include <cstdint>
 #include <iostream>
 
@@ -21,7 +22,9 @@ public:
     /**
      * @param node 用于存储节点的内存地址
      */
-    explicit LeafNode(void *node) : node(node) {}
+    explicit LeafNode(void *node) : node(node) {
+        set_node_type(NodeType::LEAF);
+    }
 
     void initialize_leaf_node() { // 初始化叶子节点
         *leaf_node_num_cells() = 0;
@@ -47,6 +50,14 @@ public:
      * @brief 用于打印出节点和其子节点的信息
      */
     void print_leaf_node();
+
+    NodeType get_node_type() {
+        uint8_t value = *((uint8_t *) ((char *) node + NODE_TYPE_OFFSET));
+        return (NodeType) value;
+    }
+    void set_node_type(NodeType type) {
+        *((uint8_t*)((char*)node + NODE_TYPE_OFFSET)) = (uint8_t)type;
+    }
 };
 
 

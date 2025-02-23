@@ -11,6 +11,9 @@
 #include "LeafNode.hpp"
 
 #include <cstdlib>
+#include <memory>
+
+class Cursor;
 
 class Table final {
 private:
@@ -64,6 +67,8 @@ public:
         uint_fast32_t byte_offset = row_offset * ROW_SIZE;
         return static_cast<char *>(page) + byte_offset;
     }
+
+    std::unique_ptr<Cursor> table_find(uint32_t key);
 
     friend class Cursor;
 

@@ -27,11 +27,12 @@ enum class StatementType {
 enum class ExecuteResult {
     SUCCESS,
     TABLE_FULL,
+    DUPLICATE_KEY,
     ERROR
 };
 
 /// @brief 节点类型
-enum class NodeTypes {
+enum class NodeType {
     INTERNAL,
     LEAF
 };

@@ -9,7 +9,6 @@
 #include "Cursor.hpp"
 #include "LeafNode.hpp"
 
-
 void DB::start() {
     while (true) {
         printPrompt();
@@ -149,16 +148,24 @@ bool DB::parse_meta_command(const std::string &command) {
 }
 
 ExecuteResult DB::execute_insert(const Statement &statement) {
-    auto leaf_node = LeafNode(table->pager.get_page(
-            table->root_page_num));
-    if (*(leaf_node.leaf_node_num_cells()) >= LEAF_NODE_MAX_CELLS) {
+    LeafNode leaf_node{table->pager.get_page(table->root_page_num)};
+    uint32_t num_cells = *leaf_node.leaf_node_num_cells();
+    if (num_cells>= LEAF_NODE_MAX_CELLS) {
         std::cout << "Leaf node full." << std::endl;
         return ExecuteResult::TABLE_FULL;
     }
-    auto cursor = std::make_unique<Cursor>(*table, false); // 从头插入
+    auto cursor= table->table_find(statement.row_to_insert.id); // 从头插入
+
+    if (cursor->cell_num < num_cells) {
+        uint32_t key_at_index = *leaf_node.leaf_node_key(cursor->cell_num);
+        if (key_at_index == statement.row_to_insert.id) {
+            return ExecuteResult::DUPLICATE_KEY;
+        }
+    }
     cursor->leaf_node_insert(statement.row_to_insert.id, statement.row_to_insert);  // 这里简单的将id作为insert的key
 
     return ExecuteResult::SUCCESS;
+
 }
 
 ExecuteResult DB::execute_select() {
@@ -191,6 +198,9 @@ void DB::execute_statement(const Statement &statement) {
             break;
         case ExecuteResult::TABLE_FULL:
             std::cout << "Error : Table full." << std::endl;
+            break;
+        case ExecuteResult::DUPLICATE_KEY:
+            std::cout << "Error: Duplicate key." << std::endl;
             break;
         default:
             std::cout << "Error : Uncategorized error;";

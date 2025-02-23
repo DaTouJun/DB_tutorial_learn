@@ -19,6 +19,7 @@ private:
     bool end_of_table;
 public:
     Cursor(Table &table, bool option);
+    Cursor(Table &table, uint32_t page_num, uint32_t key);
     void *cursor_value() const;
     void cursor_advance();
     void leaf_node_insert(uint32_t key, const Row &value);

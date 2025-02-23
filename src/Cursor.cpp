@@ -29,6 +29,35 @@ Cursor::Cursor(Table &table, bool option) : table(table) {
     }
 }
 
+Cursor::Cursor(Table &table, uint32_t page_num, uint32_t key)
+        : table(table),
+          page_num(page_num) {
+    this->end_of_table = false;
+    this->page_num = page_num;
+    this->end_of_table = false;
+
+    LeafNode root_node{table.pager.get_page(page_num)};
+    uint32_t num_cells = *root_node.leaf_node_num_cells();
+
+    uint32_t min_index = 0;
+    uint32_t one_past_max_index = num_cells;
+    while (one_past_max_index != min_index) {
+        uint32_t index = (min_index + one_past_max_index) / 2;
+        uint32_t key_at_index = *root_node.leaf_node_key(index);
+
+        if (key == key_at_index) {
+            this->cell_num = index;
+            return;
+        } else if (key < key_at_index) {
+            one_past_max_index = index;
+        } else {
+            min_index = index + 1;
+        }
+    }
+    this->cell_num = min_index;
+}
+
+
 void *Cursor::cursor_value() const { // 获得指针指向的位置
     void *page = table.pager.get_page(page_num);
     return LeafNode(page).leaf_node_value(cell_num);
@@ -42,7 +71,7 @@ void Cursor::cursor_advance() { // 增加cursor位置
     }
 }
 
-void Cursor::leaf_node_insert(uint32_t key,const Row &value) {
+void Cursor::leaf_node_insert(uint32_t key, const Row &value) {
     auto leaf_node = LeafNode(table.pager.get_page(page_num));
     uint32_t num_cells = *leaf_node.leaf_node_num_cells();  // 当前叶子节点中的cell数量
 
