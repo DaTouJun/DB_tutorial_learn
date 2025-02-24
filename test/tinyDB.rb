@@ -53,12 +53,15 @@ describe 'database' do
     end
 
     it "prints error message when table is full" do
-        script = (1..1401).map do |i|
+        script = (1..900).map do |i|
           "insert #{i} user#{i} person#{i}@example.com"
         end
         script << ".exit"
         result = run_script(script)
-        expect(result[-2]).to eq("Error : Table full.")
+        expect(result.last(2)).to match_array([
+            "db > Executed.",
+            "db > Need to implement searching an internal node.",
+        ])
     end
 
     # 测试边界条件
@@ -145,10 +148,10 @@ describe 'database' do
             "db > Executed.",
             "db > Executed.",
             "db > Tree:",
-            "leaf (size 3)",
-            " - 0 : 1",
-            " - 1 : 2",
-            " - 2 : 3",
+            " - leaf (size 3)",
+            "   - 1",
+            "   - 2",
+            "   - 3",
             "db > Bye!",
         ])
     end
@@ -164,7 +167,7 @@ describe 'database' do
         expect(result).to match_array([
             "db > Constants:",
             "ROW_SIZE: 293",
-            "COMMON_NODE_HEADER_SIZE: \u0006",
+            "COMMON_NODE_HEADER_SIZE: 6",
             "LEAF_NODE_HEADER_SIZE: 10",
             "LEAF_NODE_CELL_SIZE: 297",
             "LEAF_NODE_SPACE_FOR_CELLS: 4086",
@@ -188,6 +191,41 @@ describe 'database' do
             "db > (1, user1, person1@example.com)",
             "Executed.",
             "db > Bye!",
+        ])
+    end
+
+    # 第九 拆分叶节点
+    it "allows printing out the structure of a 3-leaf-node btree" do
+        script = (1..14).map do |i|
+            "insert #{i} user#{i} person#{i}@example.com"
+        end
+        script << ".btree"
+        File.write("test_script.txt", script.join("\n"))
+        script << "insert 15 user15 person15@example.com"
+        script << ".exit"
+        result = run_script(script)
+
+        expect(result[14...(result.length)]).to match_array([
+            "db > Tree:",
+            " - internal (size 1)",
+            "   - leaf (size 7)",
+            "     - 1",
+            "     - 2",
+            "     - 3",
+            "     - 4",
+            "     - 5",
+            "     - 6",
+            "     - 7",
+            "   - key 7",
+            "   - leaf (size 7)",
+            "     - 8",
+            "     - 9",
+            "     - 10",
+            "     - 11",
+            "     - 12",
+            "     - 13",
+            "     - 14",
+            "db > Need to implement searching an internal node.",
         ])
     end
 end

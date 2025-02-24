@@ -8,7 +8,7 @@
 
 #include "Serializer.hpp"
 #include "Pager.hpp"
-#include "LeafNode.hpp"
+#include "Node/LeafNode.hpp"
 
 #include <cstdlib>
 #include <memory>
@@ -16,18 +16,16 @@
 class Cursor;
 
 class Table final {
-private:
     uint32_t root_page_num;     // 用于存储根节点的页面号  现在一个节点对应一个page
     Pager pager;
-    uint_fast32_t num_rows;
 public:
     // 初始化 计算已有行数
     explicit Table(const char *filename) : pager(filename) {
-        num_rows = pager.file_length / ROW_SIZE; // 已经有的行数
         root_page_num = 0;  // 现在就一个page
         if (pager.num_pages == 0) { // 目前页面没有节点，要创建
             LeafNode root_node = LeafNode(pager.get_page(0)); // 获得第0页，同时 pager自动创建对应文件
             root_node.initialize_leaf_node();
+            root_node.set_node_root(true);
         }
     }
 
@@ -69,6 +67,8 @@ public:
     }
 
     std::unique_ptr<Cursor> table_find(uint32_t key);
+
+    void create_new_root(uint32_t right_child_page_num);
 
     friend class Cursor;
 

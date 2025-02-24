@@ -7,7 +7,7 @@
 #include <memory>
 
 #include "Cursor.hpp"
-#include "LeafNode.hpp"
+#include "Node/LeafNode.hpp"
 
 void DB::start() {
     while (true) {
@@ -110,8 +110,7 @@ MetaCommandResult DB::do_meta_command(const std::string &command) {
         exit(EXIT_SUCCESS);
     } else if (command == ".btree") {
         std::cout << "Tree:" << std::endl;
-        auto root_node = LeafNode(table->pager.get_page(table->root_page_num));
-        root_node.print_leaf_node();
+        table->pager.print_tree(table->root_page_num, 0);
         return MetaCommandResult::SUCCESS;
     } else if (command == ".help") {
         return MetaCommandResult::HELP;
@@ -119,11 +118,11 @@ MetaCommandResult DB::do_meta_command(const std::string &command) {
         using std::cout, std::endl;
         cout << "Constants:" << endl;
         cout << "ROW_SIZE: " << ROW_SIZE << endl;
-        cout << "COMMON_NODE_HEADER_SIZE: " << COMMON_NODE_HEADER_SIZE << endl;
-        cout << "LEAF_NODE_HEADER_SIZE: " << LEAF_NODE_HEADER_SIZE << endl;
-        cout << "LEAF_NODE_CELL_SIZE: " << LEAF_NODE_CELL_SIZE << endl;
-        cout << "LEAF_NODE_SPACE_FOR_CELLS: " << LEAF_NODE_SPACE_FOR_CELLS << endl;
-        cout << "LEAF_NODE_MAX_CELLS: " << LEAF_NODE_MAX_CELLS << endl;
+        cout << "COMMON_NODE_HEADER_SIZE: " << NODE::COMMON_NODE_HEADER_SIZE << endl;
+        cout << "LEAF_NODE_HEADER_SIZE: " << NODE::LEAF::HEADER_SIZE << endl;
+        cout << "LEAF_NODE_CELL_SIZE: " << NODE::LEAF::CELL_SIZE << endl;
+        cout << "LEAF_NODE_SPACE_FOR_CELLS: " << NODE::LEAF::SPACE_FOR_CELLS << endl;
+        cout << "LEAF_NODE_MAX_CELLS: " << NODE::LEAF::MAX_CELLS << endl;
         return MetaCommandResult::SUCCESS;
     }
     return MetaCommandResult::UNRECOGNIZED_COMMAND;
@@ -150,10 +149,7 @@ bool DB::parse_meta_command(const std::string &command) {
 ExecuteResult DB::execute_insert(const Statement &statement) {
     LeafNode leaf_node{table->pager.get_page(table->root_page_num)};
     uint32_t num_cells = *leaf_node.leaf_node_num_cells();
-    if (num_cells>= LEAF_NODE_MAX_CELLS) {
-        std::cout << "Leaf node full." << std::endl;
-        return ExecuteResult::TABLE_FULL;
-    }
+
     auto cursor= table->table_find(statement.row_to_insert.id); // 从头插入
 
     if (cursor->cell_num < num_cells) {
@@ -165,7 +161,6 @@ ExecuteResult DB::execute_insert(const Statement &statement) {
     cursor->leaf_node_insert(statement.row_to_insert.id, statement.row_to_insert);  // 这里简单的将id作为insert的key
 
     return ExecuteResult::SUCCESS;
-
 }
 
 ExecuteResult DB::execute_select() {

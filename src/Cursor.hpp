@@ -12,17 +12,17 @@
  * @brief 这是指针类，用于便捷操作Table
  */
 class Cursor {
-private:
     Table &table;       // 对应的页
     uint32_t page_num;
     uint32_t cell_num;
     bool end_of_table;
 public:
-    Cursor(Table &table, bool option);
+    Cursor(Table &table, bool from_begin);
     Cursor(Table &table, uint32_t page_num, uint32_t key);
     void *cursor_value() const;
     void cursor_advance();
     void leaf_node_insert(uint32_t key, const Row &value);
+    void leaf_node_split_and_insert(uint32_t key, const Row &value);
 
     friend class DB;
 };

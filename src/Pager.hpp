@@ -8,8 +8,14 @@
 #include <cstdio>
 #include <fcntl.h>
 #include <iostream>
+#include <memory>
 #include <unistd.h>
 
+#include "Node/Node.hpp"
+
+/**
+ * @brief 页管理器
+ */
 class Pager {
 public:
     int file_describer;
@@ -43,21 +49,25 @@ public:
 
     // 通过编号获得页面
     void *get_page(uint32_t page_index) {
-        if (page_index >= TABLE_MAX_PAGES) {  // 超过了最大页面数
+        if (page_index >= TABLE_MAX_PAGES) {
+            // 超过了最大页面数
             std::cout << "Tried to fetch page number out of bounds. " << page_index
-                      << " > " << TABLE_MAX_PAGES << std::endl;
+                    << " > " << TABLE_MAX_PAGES << std::endl;
             exit(EXIT_FAILURE);
         }
-        if (pages[page_index] == nullptr) {   // 要访问的页面号不存在则从磁盘加载，并申请内存
+        if (pages[page_index] == nullptr) {
+            // 要访问的页面号不存在则从磁盘加载，并申请内存
             void *page = malloc(PAGE_SIZE);
-            uint32_t num_pages = file_length / PAGE_SIZE;   // 已经有的页面数
+            uint32_t num_pages = file_length / PAGE_SIZE; // 已经有的页面数
             // num_pages DB中的页面数量   而不是当前pager中的页面数量this->num_pages
 
-            if (file_length % PAGE_SIZE) {  // 如果剩余页面则存储不完整的页面
+            if (file_length % PAGE_SIZE) {
+                // 如果剩余页面则存储不完整的页面
                 num_pages++;
             }
 
-            if (page_index < num_pages) {    // 判断文件是否有这个页面，没有就直接返回内存地址，有就从磁盘中读取之前的数据
+            if (page_index < num_pages) {
+                // 判断文件是否有这个页面，没有就直接返回内存地址，有就从磁盘中读取之前的数据
                 lseek(file_describer, page_index * PAGE_SIZE,
                       SEEK_SET);
                 ssize_t bytes_read = read(file_describer, page, PAGE_SIZE); // 读取放到page中
@@ -96,6 +106,19 @@ public:
         if (bytes_written == -1) {
             std::cout << "Error writing : " << errno << std::endl;
             exit(EXIT_FAILURE);
+        }
+    }
+
+    uint32_t get_unused_page_num() const {
+        return num_pages;
+    }
+
+    void print_tree(uint32_t page_num, uint32_t indentation_level);
+
+private:
+    void indent(uint32_t level) {
+        for (uint32_t i = 0; i < level; i++) {
+            std::cout << "  ";
         }
     }
 };

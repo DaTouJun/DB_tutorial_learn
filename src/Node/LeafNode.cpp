@@ -4,6 +4,8 @@
 
 #include "LeafNode.hpp"
 
+#include <iostream>
+
 void LeafNode::print_leaf_node() {
     uint32_t num_cells = *leaf_node_num_cells();
     std::cout << "leaf (size " << num_cells << ")" << std::endl;
