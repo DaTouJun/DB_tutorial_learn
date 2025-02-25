@@ -105,23 +105,23 @@ void Cursor::leaf_node_split_and_insert(uint32_t key, const Row &value) {
     new_node.initialize_leaf_node();
 
     for (int32_t i = NODE::LEAF::MAX_CELLS; i >= 0; i--) {
-        LeafNode destination_node{nullptr};
+        LeafNode *destination_node;
 
         if (i >= NODE::LEAF::LEFT_SPLIT_COUNT) {
-            destination_node = new_node;
+            destination_node = &new_node;
         } else {
-            destination_node = old_node;
+            destination_node = &old_node;
         }
 
         uint32_t index_within_node = i % NODE::LEAF::LEFT_SPLIT_COUNT;
-        LeafNode destination{destination_node.leaf_node_cell(index_within_node)};
+        void *destination = destination_node->leaf_node_cell(index_within_node);
 
         if (i == cell_num) {
-            serialize_row(value, destination.get_node());
+            serialize_row(value, destination);
         } else if (i > cell_num) {
-            memcpy(destination.get_node(), old_node.leaf_node_cell(i - 1), NODE::LEAF::CELL_SIZE);
+            memcpy(destination, old_node.leaf_node_cell(i - 1), NODE::LEAF::CELL_SIZE);
         } else {
-            memcpy(destination.get_node(), old_node.leaf_node_cell(i), NODE::LEAF::CELL_SIZE);
+            memcpy(destination, old_node.leaf_node_cell(i), NODE::LEAF::CELL_SIZE);
         }
     }
 

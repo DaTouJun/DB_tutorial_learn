@@ -11,7 +11,11 @@ describe 'database' do
         raw_output = nil
         IO.popen("./tinyDB test.db", "r+") do |pipe|
             commands.each do |command|
-            pipe.puts command
+            begin
+                pipe.puts command
+            rescue Errno::EPIPE
+                break
+            end
         end
         pipe.close_write
         raw_output = pipe.gets(nil)
@@ -53,14 +57,14 @@ describe 'database' do
     end
 
     it "prints error message when table is full" do
-        script = (1..900).map do |i|
+        script = (1..1400).map do |i|
           "insert #{i} user#{i} person#{i}@example.com"
         end
         script << ".exit"
         result = run_script(script)
         expect(result.last(2)).to match_array([
             "db > Executed.",
-            "db > Need to implement searching an internal node.",
+            "db > Need to implement updating parent after split",
         ])
     end
 
@@ -200,11 +204,11 @@ describe 'database' do
             "insert #{i} user#{i} person#{i}@example.com"
         end
         script << ".btree"
-        File.write("test_script.txt", script.join("\n"))
         script << "insert 15 user15 person15@example.com"
+        script << ".btree"
         script << ".exit"
         result = run_script(script)
-
+        File.write("test_script.txt", script.join("\n"))
         expect(result[14...(result.length)]).to match_array([
             "db > Tree:",
             " - internal (size 1)",
@@ -225,7 +229,28 @@ describe 'database' do
             "     - 12",
             "     - 13",
             "     - 14",
-            "db > Need to implement searching an internal node.",
+            "db > Executed.",
+            "db > Tree:",
+            " - internal (size 1)",
+            "   - leaf (size 7)",
+            "     - 1",
+            "     - 2",
+            "     - 3",
+            "     - 4",
+            "     - 5",
+            "     - 6",
+            "     - 7",
+            "   - key 7",
+            "   - leaf (size 8)",
+            "     - 8",
+            "     - 9",
+            "     - 10",
+            "     - 11",
+            "     - 12",
+            "     - 13",
+            "     - 14",
+            "     - 15",
+            "db > Bye!",
         ])
     end
 end

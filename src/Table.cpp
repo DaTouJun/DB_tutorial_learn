@@ -12,8 +12,33 @@ std::unique_ptr<Cursor> Table::table_find(uint32_t key) {
     if (root_node.get_node_type() == NodeType::LEAF) {
         return std::make_unique<Cursor>(*this, root_page_num, key);
     } else {
-        std::cout << "Need to implement searching an internal node." << std::endl;
-        exit(EXIT_FAILURE);
+        return internal_node_find(root_page_num, key);
+    }
+}
+
+std::unique_ptr<Cursor> Table::internal_node_find(uint32_t page_num, uint32_t key) {
+    InternalNode node{pager.get_page(page_num)};
+    uint32_t num_keys = *node.internal_node_num_keys();
+    uint32_t min_index = 0, max_index = num_keys;   // 子节点数量比key多一个
+
+    while (max_index != min_index) {
+        uint32_t index = (min_index + max_index) / 2;
+        uint32_t key_to_right = *node.internal_node_key(index);
+        if (key_to_right >= key) {
+            max_index = index;
+        } else {
+            min_index = index + 1;
+        }
+    }
+    uint32_t child_num = *node.internal_node_child(min_index);
+    Node child = pager.get_page(child_num);
+    switch (child.get_node_type()) {
+        case NodeType::INTERNAL:
+            return internal_node_find(child_num, key);
+        case NodeType::LEAF:
+            return std::make_unique<Cursor>(*this, child_num, key);
+        default:
+            exit(EXIT_FAILURE);
     }
 }
 

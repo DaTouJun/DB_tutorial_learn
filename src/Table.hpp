@@ -16,20 +16,23 @@
 class Cursor;
 
 class Table final {
-    uint32_t root_page_num;     // 用于存储根节点的页面号  现在一个节点对应一个page
+    uint32_t root_page_num; // 用于存储根节点的页面号  现在一个节点对应一个page
     Pager pager;
+
 public:
     // 初始化 计算已有行数
     explicit Table(const char *filename) : pager(filename) {
-        root_page_num = 0;  // 现在就一个page
-        if (pager.num_pages == 0) { // 目前页面没有节点，要创建
+        root_page_num = 0; // 现在就一个page
+        if (pager.num_pages == 0) {
+            // 目前页面没有节点，要创建
             LeafNode root_node = LeafNode(pager.get_page(0)); // 获得第0页，同时 pager自动创建对应文件
             root_node.initialize_leaf_node();
             root_node.set_node_root(true);
         }
     }
 
-    ~Table() {  // 在Table销毁时 开始执行保存操作
+    ~Table() {
+        // 在Table销毁时 开始执行保存操作
         for (uint32_t i = 0; i < pager.num_pages; i++) {
             if (pager.pages[i] == nullptr) {
                 continue;
@@ -67,6 +70,7 @@ public:
     }
 
     std::unique_ptr<Cursor> table_find(uint32_t key);
+    std::unique_ptr<Cursor> internal_node_find(uint32_t page_num, uint32_t key);
 
     void create_new_root(uint32_t right_child_page_num);
 
