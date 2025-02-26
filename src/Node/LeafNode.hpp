@@ -5,7 +5,6 @@
 #ifndef TINYDB_WITHOUTTEST_LEAFNODE_H
 #define TINYDB_WITHOUTTEST_LEAFNODE_H
 
-#include "../Serializer.hpp"
 #include "../EnumsAndDefs.hpp"
 #include "Node.hpp"
 #include <cstdint>
@@ -27,6 +26,7 @@ public:
         set_node_type(NodeType::LEAF);
         set_node_root(false);
         *leaf_node_num_cells() = 0;
+        *leaf_node_next_leaf() = 0;
     }
 
     uint32_t *leaf_node_num_cells() const {
@@ -57,6 +57,8 @@ public:
     uint32_t get_node_max_key() override {
         return *leaf_node_key(*leaf_node_num_cells() - 1);
     }
+
+    uint32_t *leaf_node_next_leaf() const;
 };
 
 

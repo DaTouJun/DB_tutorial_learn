@@ -74,14 +74,18 @@ namespace NODE {
         typedef uint32_t NUM_CELLS_TYPE;
         constexpr uint32_t NUM_CELLS_OFFSET = COMMON_NODE_HEADER_SIZE;
         constexpr uint32_t NUM_CELLS_SIZE = sizeof(NUM_CELLS_TYPE);
-        constexpr uint32_t HEADER_SIZE = NUM_CELLS_SIZE + NUM_CELLS_OFFSET;
+
+        constexpr uint32_t NEXT_LEAF_OFFSET = NUM_CELLS_OFFSET + NUM_CELLS_SIZE;
+        constexpr uint32_t NEXT_LEAF_SIZE = sizeof(uint32_t);
+
+        constexpr uint32_t HEADER_SIZE = NEXT_LEAF_OFFSET + NEXT_LEAF_SIZE;
 
         // 内容
-        constexpr uint32_t KEY_SIZE = sizeof(KEY_TYPE); // 重复
         constexpr uint32_t KEY_OFFSET = 0;
+        constexpr uint32_t KEY_SIZE = sizeof(KEY_TYPE); // 重复
 
-        constexpr uint32_t VALUE_SIZE = ROW_SIZE;
         constexpr uint32_t VALUE_OFFSET = KEY_SIZE + KEY_OFFSET;
+        constexpr uint32_t VALUE_SIZE = ROW_SIZE;
 
         constexpr uint32_t CELL_SIZE = VALUE_SIZE  + VALUE_OFFSET;
 

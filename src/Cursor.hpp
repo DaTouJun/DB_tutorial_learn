@@ -22,7 +22,7 @@ public:
     void *cursor_value() const;
     void cursor_advance();
     void leaf_node_insert(uint32_t key, const Row &value);
-    void leaf_node_split_and_insert(uint32_t key, const Row &value);
+    void leaf_node_split_and_insert(uint32_t key, const Row &value) const;
 
     friend class DB;
 };

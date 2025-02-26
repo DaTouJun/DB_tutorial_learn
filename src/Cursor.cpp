@@ -14,19 +14,15 @@
  * @param from_begin 是否从头开始,否则从末尾开始
  */
 Cursor::Cursor(Table &table, bool from_begin) : table(table) {
-    // 如果设置了option, 则从头开始
-    page_num = table.root_page_num;
-    auto root_node = LeafNode(table.pager.get_page(table.root_page_num));
+    auto cursor = table.table_find(0);
+    this->table = table;
+    this->page_num = cursor->page_num;
+    this->cell_num = cursor->cell_num;
+
+    LeafNode root_node{table.pager.get_page(cursor->page_num)};
     uint32_t num_cells = *root_node.leaf_node_num_cells();
-    if (from_begin) {
-        // start at the beginning of the table
-        cell_num = 0;
-        end_of_table = (num_cells == 0);
-    } else {
-        // end of the table
-        cell_num = num_cells;
-        end_of_table = true;
-    }
+
+    this->end_of_table = (num_cells == 0);
 }
 
 Cursor::Cursor(Table &table, uint32_t page_num, uint32_t key)
@@ -69,7 +65,13 @@ void Cursor::cursor_advance() {
     auto leafNode = LeafNode(table.pager.get_page(page_num));
     cell_num += 1;
     if (cell_num >= *leafNode.leaf_node_num_cells()) {
-        end_of_table = true;
+        uint32_t next_page_num = *leafNode.leaf_node_next_leaf();
+        if (next_page_num == 0) {
+            end_of_table = true;
+        } else {
+            page_num = next_page_num;
+            cell_num = 0;
+        }
     }
 }
 
@@ -98,11 +100,12 @@ void Cursor::leaf_node_insert(uint32_t key, const Row &value) {
     serialize_row(value, leaf_node.leaf_node_value(cell_num)); // 这里将行序列化，同时也对id序列化了(有冗余?)
 }
 
-void Cursor::leaf_node_split_and_insert(uint32_t key, const Row &value) {
+void Cursor::leaf_node_split_and_insert(uint32_t key, const Row &value) const {
     LeafNode old_node{table.pager.get_page(page_num)};
     uint32_t new_page_num = table.pager.get_unused_page_num();
     LeafNode new_node{table.pager.get_page(new_page_num)};
     new_node.initialize_leaf_node();
+    *old_node.leaf_node_next_leaf() = new_page_num;
 
     for (int32_t i = NODE::LEAF::MAX_CELLS; i >= 0; i--) {
         LeafNode *destination_node;
@@ -117,7 +120,8 @@ void Cursor::leaf_node_split_and_insert(uint32_t key, const Row &value) {
         void *destination = destination_node->leaf_node_cell(index_within_node);
 
         if (i == cell_num) {
-            serialize_row(value, destination);
+            serialize_row(value, destination_node->leaf_node_value(index_within_node));
+            *destination_node->leaf_node_key(index_within_node) = key;
         } else if (i > cell_num) {
             memcpy(destination, old_node.leaf_node_cell(i - 1), NODE::LEAF::CELL_SIZE);
         } else {
